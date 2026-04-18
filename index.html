@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎓 Jogos Educacionais</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-cyan: #00f5ff;
+    --neon-pink: #ff0080;
+    --neon-yellow: #ffee00;
+    --neon-green: #39ff14;
+    --neon-purple: #bf00ff;
+    --dark: #05050f;
+    --dark2: #0a0a1f;
+    --card-bg: rgba(255,255,255,0.03);
+    --card-border: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 16px; height: 16px;
+    border: 2px solid var(--neon-cyan);
+    position: fixed; border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s ease, background 0.2s;
+    mix-blend-mode: difference;
+  }
+  .cursor.clicked { transform: translate(-50%,-50%) scale(2); background: var(--neon-cyan); }
+
+  /* Scanlines overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none; z-index: 100;
+    animation: scanMove 8s linear infinite;
+  }
+  @keyframes scanMove { from{background-position:0 0} to{background-position:0 100%} }
+
+  /* Stars background */
+  .stars {
+    position: fixed; inset: 0; overflow: hidden; z-index: 0;
+  }
+  .star {
+    position: absolute; background: #fff; border-radius: 50%;
+    animation: twinkle var(--dur, 3s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+  @keyframes twinkle {
+    0%,100%{ opacity: 0.1; transform: scale(1); }
+    50%{ opacity: 0.8; transform: scale(1.5); }
+  }
+
+  /* Grid glow lines */
+  .grid-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    perspective: 500px;
+    animation: gridPulse 4s ease-in-out infinite;
+  }
+  @keyframes gridPulse {
+    0%,100%{ opacity:0.5 } 50%{ opacity:1 }
+  }
+
+  /* Main layout */
+  .container {
+    position: relative; z-index: 10;
+    max-width: 1100px; margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  header {
+    text-align: center; margin-bottom: 60px;
+    position: relative;
+  }
+  .logo-wrap {
+    display: inline-block;
+    position: relative;
+  }
+  .logo-icon {
+    font-size: 3.5rem; display: block;
+    animation: bounce 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px var(--neon-yellow));
+  }
+  @keyframes bounce {
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-10px); }
+  }
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(1.4rem, 4vw, 2.4rem);
+    letter-spacing: 0.1em;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(0,245,255,0.5));
+    animation: titleFlicker 5s ease-in-out infinite;
+    margin-top: 12px;
+  }
+  @keyframes titleFlicker {
+    0%,95%,100%{ opacity:1 }
+    96%{ opacity:0.4 }
+    97%{ opacity:1 }
+    98%{ opacity:0.3 }
+    99%{ opacity:1 }
+  }
+  .subtitle {
+    font-size: 0.65rem;
+    color: var(--neon-cyan);
+    letter-spacing: 0.4em;
+    margin-top: 10px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  /* Score bar */
+  .top-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(0,245,255,0.04);
+    border: 1px solid rgba(0,245,255,0.15);
+    border-radius: 6px; padding: 10px 20px;
+    margin-bottom: 40px;
+    font-size: 0.6rem; color: var(--neon-cyan);
+    font-family: 'Press Start 2P', monospace;
+    letter-spacing: 0.05em;
+  }
+  .blink { animation: blink 1s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Search */
+  .search-wrap {
+    margin-bottom: 36px; position: relative;
+  }
+  .search-wrap input {
+    width: 100%; padding: 14px 20px 14px 50px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0,245,255,0.25);
+    border-radius: 6px; color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem; outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .search-wrap input:focus {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 20px rgba(0,245,255,0.2);
+  }
+  .search-wrap input::placeholder { color: rgba(255,255,255,0.25); }
+  .search-icon {
+    position: absolute; left: 16px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--neon-cyan); font-size: 1.1rem;
+  }
+
+  /* Category tabs */
+  .tabs {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 36px;
+  }
+  .tab {
+    padding: 8px 18px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px; color: rgba(255,255,255,0.5);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem; font-weight: 700;
+    cursor: none; letter-spacing: 0.1em;
+    transition: all 0.25s;
+    text-transform: uppercase;
+  }
+  .tab:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+  .tab.active {
+    color: var(--dark);
+    border-color: transparent;
+    background: var(--neon-cyan);
+    box-shadow: 0 0 16px rgba(0,245,255,0.5);
+  }
+
+  /* Games grid */
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  /* Game card */
+  .game-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: none;
+    text-decoration: none;
+    display: block;
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    animation: cardIn 0.5s ease both;
+    position: relative;
+  }
+  .game-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: var(--accent-color, var(--neon-cyan));
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4),
+                0 0 30px var(--accent-glow, rgba(0,245,255,0.2));
+  }
+  .game-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-thumb {
+    height: 130px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.5rem;
+    position: relative; overflow: hidden;
+    background: var(--thumb-bg, linear-gradient(135deg, #0a1628, #0d2040));
+  }
+  .card-thumb::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 50%, var(--accent-glow, rgba(0,245,255,0.15)), transparent 70%);
+  }
+  .card-thumb .emoji {
+    position: relative; z-index: 1;
+    animation: floatEmoji 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px var(--accent-color, var(--neon-cyan)));
+  }
+  @keyframes floatEmoji {
+    0%,100%{ transform: translateY(0) rotate(-3deg); }
+    50%{ transform: translateY(-8px) rotate(3deg); }
+  }
+
+  .card-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--accent-color, var(--neon-cyan));
+    color: var(--dark); font-family: 'Press Start 2P', monospace;
+    font-size: 0.45rem; padding: 4px 8px; border-radius: 3px;
+    font-weight: 700; z-index: 2;
+    letter-spacing: 0.05em;
+  }
+
+  .card-body { padding: 16px 18px 20px; }
+  .card-title {
+    font-size: 0.8rem; font-weight: 900;
+    color: #fff; margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+  .card-desc {
+    font-size: 0.68rem; color: rgba(255,255,255,0.45);
+    line-height: 1.6; margin-bottom: 14px;
+    font-family: 'Orbitron', sans-serif;
+  }
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-tag {
+    font-size: 0.55rem; font-family: 'Press Start 2P', monospace;
+    color: var(--accent-color, var(--neon-cyan));
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .card-btn {
+    background: transparent;
+    border: 1px solid var(--accent-color, var(--neon-cyan));
+    color: var(--accent-color, var(--neon-cyan));
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem; padding: 7px 12px;
+    border-radius: 4px; cursor: none;
+    transition: all 0.2s; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .card-btn:hover {
+    background: var(--accent-color, var(--neon-cyan));
+    color: var(--dark);
+    box-shadow: 0 0 16px var(--accent-glow, rgba(0,245,255,0.4));
+  }
+
+  /* Empty state */
+  .empty {
+    grid-column: 1/-1; text-align: center;
+    padding: 60px 20px; color: rgba(255,255,255,0.25);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.7rem; line-height: 2;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center; margin-top: 70px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem; color: rgba(255,255,255,0.2);
+    letter-spacing: 0.1em; position: relative; z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="stars" id="stars"></div>
+<div class="grid-bg"></div>
+
+<div class="container">
+  <header>
+    <div class="logo-wrap">
+      <span class="logo-icon">🎓</span>
+    </div>
+    <h1>EDUC GAMES EDUCACIONAL</h1>
+    <p class="subtitle">JOGOS EDUCACIONAIS - SCRATCH + HTML + CSS + JS &nbsp;▼</p>
+  </header>
+
+  <div class="top-bar">
+    <span>● PLAYER 1 READY</span>
+    <span class="blink">INSERT COIN</span>
+    <span id="clock">00:00:00</span>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar jogo..." oninput="filterGames()">
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="games-grid" id="gamesGrid"></div>
+</div>
+
+<footer>
+  <p>GAME ZONE © 2026 &nbsp;·&nbsp; <span class="blink">█</span></p>
+</footer>
+
+<script>
+// ── Dados dos jogos ─────────────────────────────────────────────────────────
+// ✏️  EDITE AQUI: adicione, remova ou altere os jogos e links
+const games = [
+  {
+    title: "Super Tartu: Aventura Educativa",
+    desc: "Ajude o Tartu a explorar o mundo! Use as teclas W [pular,pular duplo, pular triplo], A [Esquerda], S [Agachar], D [Direita] ou os controles touch para pular, andar e atacar com a língua..",
+    emoji: "🐢💻🚀",
+    category: "Programação",
+    badge: "SCRATCH+HTML+CSS+JS",
+    url: "https://alvesdealmeida.github.io/turtuAjuda/",
+    accent: "#4CAF50",
+    glow: "rgba(57,255,20,0.2)",
+    thumb: "linear-gradient(135deg, #001a00, #003300)",
+  },
+  /*
+  {
+    title: "🖼️ Virus vs celula",
+    desc: " Virus x celular - Programação com Scratch + html + css + js.",
+    emoji: "🖼️💻🚀",
+    category: "Programação",
+    badge: "PPROGRAMAS-JOGOS",
+    url: "https://alvesdealmeida.github.io/scratchVirus/",
+    accent: "#4cbf56",
+    glow: "rgba(255,238,0,0.2)",
+    thumb: "linear-gradient(135deg, #1a1500, #332b00)",
+  },
+  {
+    title: "Peixe Faminto",
+    desc: "Ajude o Peixe faminto come peixes, mas cuidado com o predador.",
+    emoji: "🟡",
+    category: "Scratch - CSS - JS",
+    badge: "DIVERSÃO",
+    url: "https://alvesdealmeida.github.io/peixeFaminto/",
+    accent: "#ffb300",
+    glow: "rgba(255,179,0,0.2)",
+    thumb: "linear-gradient(135deg, #1a1000, #2e1c00)",
+  },
+  <!--
+  {
+    title: "Torre de Hanói",
+    desc: "Resolva o clássico puzzle de lógica movendo os discos.",
+    emoji: "🗼",
+    category: "Lógica",
+    badge: "PUZZLE",
+    url: "https://alvesdealmeida.github.io/torreHanoi/",
+    accent: "#ff0080",
+    glow: "rgba(255,0,128,0.2)",
+    thumb: "linear-gradient(135deg, #200010, #3a0020)",
+  },
+  {
+    title: "Joguinho de Xadrez",
+    desc: "Aprenda e pratique xadrez com peças e regras completas.",
+    emoji: "♟️",
+    category: "Lógica",
+    badge: "XADREZ",
+    url: "https://alvesdealmeida.github.io/jogoXadrez/",
+    accent: "#bf00ff",
+    glow: "rgba(191,0,255,0.2)",
+    thumb: "linear-gradient(135deg, #150020, #25003a)",
+  },
+  */
+];
+// ────────────────────────────────────────────────────────────────────────────
+
+let activeCategory = "Todos";
+
+function getCategories() {
+  const cats = ["Todos", ...new Set(games.map(g => g.category))];
+  return cats;
+}
+
+function renderTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = getCategories().map(cat => `
+    <button class="tab ${cat === activeCategory ? 'active' : ''}"
+      onclick="setCategory('${cat}')">${cat}</button>
+  `).join('');
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  renderTabs();
+  filterGames();
+}
+
+function filterGames() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  const filtered = games.filter(g => {
+    const matchCat = activeCategory === "Todos" || g.category === activeCategory;
+    const matchQ = !q || g.title.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  renderGames(filtered);
+}
+
+function renderGames(list) {
+  const grid = document.getElementById("gamesGrid");
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty">😵 NENHUM JOGO ENCONTRADO<br><br>TENTE OUTRO TERMO...</div>`;
+    return;
+  }
+  grid.innerHTML = list.map((g, i) => `
+    <a class="game-card" href="${g.url}" target="_blank" rel="noopener"
+       style="--accent-color:${g.accent};--accent-glow:${g.glow};animation-delay:${i*0.07}s">
+      <div class="card-thumb" style="background:${g.thumb}">
+        <span class="emoji">${g.emoji}</span>
+        ${g.badge ? `<span class="card-badge">${g.badge}</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${g.title}</div>
+        <div class="card-desc">${g.desc}</div>
+        <div class="card-footer">
+          <span class="card-tag">${g.category}</span>
+          <button class="card-btn">▶ JOGAR</button>
+        </div>
+      </div>
+    </a>
+  `).join('');
+}
+
+// Stars
+function createStars() {
+  const wrap = document.getElementById("stars");
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement("div");
+    const size = Math.random() * 2.5 + 0.5;
+    s.className = "star";
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --dur:${2+Math.random()*4}s; --delay:${Math.random()*5}s;
+    `;
+    wrap.appendChild(s);
+  }
+}
+
+// Cursor
+const cursor = document.getElementById("cursor");
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top  = e.clientY + "px";
+});
+document.addEventListener("mousedown", () => cursor.classList.add("clicked"));
+document.addEventListener("mouseup",   () => cursor.classList.remove("clicked"));
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById("clock").textContent =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Init
+createStars();
+renderTabs();
+filterGames();
+</script>
+</body>
+</html>
