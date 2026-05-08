@@ -54,7 +54,7 @@
     position:relative; z-index:5;
     max-width:1100px; margin:0 auto;
     display:flex; align-items:center; justify-content:center;
-    gap:18px;
+    gap:18px; flex-wrap:wrap;
   }
 
   /* Logo */
@@ -152,8 +152,8 @@
     transition:transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .28s, border-color .28s;
     animation:cardIn .45s ease both;
     -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
   }
-  .game-card:hover {
     transform:translateY(-10px) scale(1.016);
     box-shadow:0 22px 54px rgba(30,58,95,.17);
     border-color:var(--card-accent, var(--teal));
@@ -243,21 +243,62 @@
   }
   footer a:hover { background:rgba(14,165,233,.15); }
 
-  /* ══ RESPONSIVE ══ */
-  @media (max-width:700px) {
-    .hero { padding:16px 16px 18px; }
-    .hero-logo { height:44px; width:44px; }
-    .hero-brand-educ { font-size:1.45rem; }
-    .hero-brand-sub  { font-size:.65rem; }
-    .hero-divider    { display:none; }
-    .hero-techs      { display:none; }
-    .games-grid      { grid-template-columns:repeat(2,1fr); gap:14px; }
-    .main            { padding:28px 14px 60px; }
-    .card-thumb      { height:110px; }
-    .big-emoji       { font-size:2.8rem; }
+  /* ══ RESPONSIVE — TABLET (≤1024px) ══ */
+  @media (max-width:1024px) {
+    .games-grid { grid-template-columns:repeat(3,1fr); gap:18px; }
   }
-  @media (max-width:420px) {
-    .games-grid { grid-template-columns:1fr; }
+
+  /* ══ RESPONSIVE — TABLET PEQUENO (≤768px) ══ */
+  @media (max-width:768px) {
+    .hero { padding:18px 18px 20px; }
+    .hero-inner { gap:14px; flex-wrap:wrap; justify-content:center; }
+    .hero-logo { height:50px; width:50px; }
+    .hero-brand { text-align:center; }
+    .hero-brand-educ { font-size:1.7rem; }
+    .hero-brand-sub  { font-size:.68rem; letter-spacing:.06em; }
+    .hero-divider    { display:none; }
+    .hero-techs      { align-items:center; }
+    .tech-badges     { justify-content:center; }
+    .games-grid      { grid-template-columns:repeat(2,1fr); gap:16px; }
+    .main            { padding:28px 16px 64px; }
+    .section-heading h2 { font-size:1.25rem; }
+    .card-thumb      { height:115px; }
+    .big-emoji       { font-size:3rem; }
+    .card-body       { padding:14px 14px 12px; }
+    .card-title      { font-size:.88rem; }
+    .card-desc       { font-size:.80rem; }
+  }
+
+  /* ══ RESPONSIVE — CELULAR (≤480px) ══ */
+  @media (max-width:480px) {
+    .hero { padding:14px 12px 16px; }
+    .hero-inner { gap:10px; }
+    .hero-logo { height:42px; width:42px; }
+    .hero-brand-educ { font-size:1.45rem; letter-spacing:.10em; }
+    .hero-brand-sub  { font-size:.6rem; letter-spacing:.04em; }
+    .hero-techs      { display:none; }
+    .games-grid      { grid-template-columns:repeat(2,1fr); gap:12px; }
+    .main            { padding:22px 12px 56px; }
+    .section-heading { flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+    .section-heading h2 { font-size:1.1rem; }
+    .card-thumb      { height:105px; }
+    .big-emoji       { font-size:2.7rem; }
+    .card-body       { padding:12px 12px 10px; }
+    .card-title      { font-size:.84rem; }
+    .card-desc       { font-size:.77rem; -webkit-line-clamp:2; }
+    .card-stack      { gap:3px; }
+    .stack-chip      { font-size:.55rem; padding:2px 6px; }
+    .card-btn        { font-size:.78rem; padding:9px 14px; }
+    footer           { padding:22px 16px; font-size:.76rem; }
+  }
+
+  /* ══ RESPONSIVE — CELULAR MUITO PEQUENO (≤360px) ══ */
+  @media (max-width:360px) {
+    .hero-brand-educ { font-size:1.25rem; }
+    .hero-brand-sub  { font-size:.55rem; letter-spacing:.02em; }
+    .games-grid      { grid-template-columns:1fr; }
+    .card-thumb      { height:130px; }
+    .big-emoji       { font-size:3.4rem; }
   }
 </style>
 </head>
@@ -330,7 +371,7 @@
 <script>
 /* ── DADOS DOS JOGOS (Scratch + HTML + CSS + JS) ── */
 const games = [
- {
+  {
     title: "Xadrez IA",
     desc: "Desafie a inteligência artificial em uma partida de xadrez clássico. Mova suas peças, pense estrategicamente e tente vencer o computador!",
     emoji: "♟️",
@@ -444,7 +485,6 @@ const games = [
     glow: "rgba(255, 77, 77, 0.5)",
     thumb: "maca.jpg",
   },
-  
 ];
 
 function renderGames() {
